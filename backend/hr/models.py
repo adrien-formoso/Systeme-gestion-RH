@@ -16,6 +16,8 @@ class Employee(models.Model):
     employee_number = models.IntegerField(unique=True)
     age = models.PositiveIntegerField(null=True, blank=True)
     gender = models.CharField(max_length=10, default='Unknown')
+    firstname = models.CharField(max_length=20, default='Unknown')
+    lastname = models.CharField(max_length=20, default='Unknown')
     marital_status = models.CharField(max_length=20, default='Unknown')
     education_field = models.CharField(max_length=100, null=True, blank=True)
     distance_from_home = models.PositiveIntegerField(default=0)
