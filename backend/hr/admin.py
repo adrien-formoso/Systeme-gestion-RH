@@ -8,12 +8,27 @@ from .models import (
 # --- Configuration de l'affichage des Employés ---
 @admin.register(Employee)
 class EmployeeAdmin(admin.ModelAdmin):
-    # Champs affichés dans la liste
-    list_display = ('employee_number', 'age', 'gender', 'hire_date', 'attrition', 'manager')
-    # Barre de recherche
-    search_fields = ('employee_number', 'education_field')
+    # Ajout du prénom et nom dans la liste (placés juste après le numéro)
+    list_display = (
+        'employee_number', 
+        'firstname', 
+        'lastname', 
+        'age', 
+        'gender', 
+        'hire_date', 
+        'attrition', 
+        'manager'
+    )
+    
+    # Rendre le nom et le prénom cliquables pour ouvrir la fiche
+    list_display_links = ('employee_number', 'firstname', 'lastname')
+
+    # Recherche étendue au nom et au prénom
+    search_fields = ('employee_number', 'firstname', 'lastname', 'education_field')
+    
     # Filtres sur le côté droit
     list_filter = ('gender', 'attrition', 'marital_status')
+    
     # Organisation par date
     date_hierarchy = 'hire_date'
 
