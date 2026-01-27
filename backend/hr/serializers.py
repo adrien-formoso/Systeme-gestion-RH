@@ -2,7 +2,9 @@ from rest_framework import serializers
 from .models import (
     Employee, Department, JobRole,
     Contract, JobAssignment, ExitEvent,
-    PerformanceReview, SatisfactionSurvey
+    PerformanceReview, SatisfactionSurvey,
+    LeaveRequest, EmployeeDocument,
+    JobOffer, JobApplication
 )
 
 
@@ -51,12 +53,38 @@ class ExitEventSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class LeaveRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LeaveRequest
+        fields = "__all__"
+
+
+class EmployeeDocumentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EmployeeDocument
+        fields = "__all__"
+
+
+class JobOfferSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = JobOffer
+        fields = "__all__"
+
+
+class JobApplicationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = JobApplication
+        fields = "__all__"
+
+
 class EmployeeSerializer(serializers.ModelSerializer):
     contracts = ContractSerializer(many=True, read_only=True)
     assignment = JobAssignmentSerializer(read_only=True)
     performance_reviews = PerformanceReviewSerializer(many=True, read_only=True)
     satisfaction_surveys = SatisfactionSurveySerializer(many=True, read_only=True)
     exit_info = ExitEventSerializer(read_only=True)
+    leave_requests = LeaveRequestSerializer(many=True, read_only=True)
+    documents = EmployeeDocumentSerializer(many=True, read_only=True)
 
     class Meta:
         model = Employee
