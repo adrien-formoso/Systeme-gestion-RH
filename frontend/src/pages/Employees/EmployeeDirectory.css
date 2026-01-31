@@ -1,0 +1,101 @@
+.page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page-header {
+  margin-bottom: 48px;
+}
+
+.page-header h1 {
+  font-size: 28px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.page-header p {
+  color: #6b7280;
+  margin-top: 8px;
+  font-size: 1rem;
+}
+
+.table-container {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.employee-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.employee-table th {
+  background-color: #f9fafb;
+  padding: 20px 24px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.employee-table td {
+  padding: 18px 24px;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 14px;
+  color: #374151;
+}
+
+.employee-table tr:last-child td {
+  border-bottom: none;
+}
+
+.emp-name {
+  font-weight: 500;
+  color: #111827;
+}
+
+/* --- BADGES DE COULEUR --- */
+.badge {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  display: inline-block;
+}
+
+/* Statut Actif : Vert Pastel */
+.badge-active {
+  background-color: #ecfdf5;
+  color: #059669;
+}
+
+/* Statut Sorti : Rouge Pastel */
+.badge-exited {
+  background-color: #fef2f2;
+  color: #dc2626;
+}
+
+/* Statut En attente / Onboarding : Ambre Pastel */
+.badge-pending, .badge-onboarding {
+  background-color: #fffbeb;
+  color: #d97706;
+}
+
+/* Par défaut */
+.badge-default {
+  background-color: #f3f4f6;
+  color: #6b7280;
+}
+
+.empty-state {
+  padding: 40px;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 14px;
+}
