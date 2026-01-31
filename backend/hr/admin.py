@@ -4,10 +4,26 @@ from .models import (
     JobAssignment, Contract, ExitEvent,
     PerformanceReview, SatisfactionSurvey,
     LeaveRequest, EmployeeDocument,
-    JobOffer, JobApplication
+    JobOffer, JobApplication, JobHistory,
+    Payroll, Training, EmployeeTraining, AuditLog
 )
 
-# --- Configuration de l'affichage des Employés ---
+# --- INLINES (Pour voir les détails directement dans la fiche employé) ---
+
+class ContractInline(admin.TabularInline):
+    model = Contract
+    extra = 0
+
+class JobAssignmentInline(admin.StackedInline):
+    model = JobAssignment
+    extra = 0
+
+class PayrollInline(admin.TabularInline):
+    model = Payroll
+    extra = 0
+
+# --- CONFIGURATION PRINCIPALE : EMPLOYE ---
+
 @admin.register(Employee)
 class EmployeeAdmin(admin.ModelAdmin):
     list_display = (
@@ -15,77 +31,93 @@ class EmployeeAdmin(admin.ModelAdmin):
         'firstname',
         'lastname',
         'status',
-        'leave_balance',
+        'email',
         'hire_date',
+        'salary_brut',
         'manager'
     )
-
     list_display_links = ('employee_number', 'firstname', 'lastname')
-
-    search_fields = ('employee_number', 'firstname', 'lastname', 'education_field')
-
-    list_filter = ('status', 'gender', 'attrition', 'marital_status')
-
+    search_fields = ('employee_number', 'firstname', 'lastname', 'email')
+    list_filter = ('status', 'gender', 'nationality', 'marital_status')
     date_hierarchy = 'hire_date'
-
-
-# --- Configuration des Contrats ---
-@admin.register(Contract)
-class ContractAdmin(admin.ModelAdmin):
-    list_display = ('employee', 'contract_type', 'start_date', 'is_active')
-    list_filter = ('contract_type', 'is_active')
-
-
-# --- Configuration des Postes ---
-@admin.register(JobAssignment)
-class JobAssignmentAdmin(admin.ModelAdmin):
-    list_display = ('employee', 'department', 'job_role', 'monthly_income', 'job_level')
-    list_filter = ('department', 'job_role', 'business_travel')
-
-
-# --- Configuration des Départs ---
-@admin.register(ExitEvent)
-class ExitEventAdmin(admin.ModelAdmin):
-    list_display = ('employee', 'exit_date', 'reason')
-    list_filter = ('reason',)
-
-
-# --- Configuration des Congés ---
-@admin.register(LeaveRequest)
-class LeaveRequestAdmin(admin.ModelAdmin):
-    list_display = (
-        'employee',
-        'leave_type',
-        'start_date',
-        'end_date',
-        'days_requested',
-        'status'
+    
+    # Intégration des relations directes dans la fiche
+    inlines = [JobAssignmentInline, ContractInline, PayrollInline]
+    
+    fieldsets = (
+        ('Identité', {
+            'fields': ('user', 'employee_number', ('firstname', 'lastname'), 'gender', 'birth_date', 'nationality')
+        }),
+        ('Coordonnées', {
+            'fields': (('email', 'phone'), 'address', 'distance_from_home')
+        }),
+        ('Situation Professionnelle', {
+            'fields': ('status', 'hire_date', 'salary_brut', 'leave_balance', 'manager')
+        }),
+        ('Documents Légaux', {
+            'fields': ('social_security_number', 'marital_status')
+        }),
     )
-    list_filter = ('leave_type', 'status')
 
+# --- CARRIÈRE & PERFORMANCE ---
 
-# --- Configuration des Documents Employés ---
-@admin.register(EmployeeDocument)
-class EmployeeDocumentAdmin(admin.ModelAdmin):
-    list_display = ('employee', 'document_type', 'uploaded_at')
-    list_filter = ('document_type',)
+@admin.register(JobHistory)
+class JobHistoryAdmin(admin.ModelAdmin):
+    list_display = ('employee', 'job_role', 'start_date', 'end_date', 'salary')
+    list_filter = ('job_role',)
 
+@admin.register(PerformanceReview)
+class PerformanceReviewAdmin(admin.ModelAdmin):
+    list_display = ('employee', 'review_date', 'performance_rating', 'percent_salary_hike')
+    list_filter = ('performance_rating',)
 
-# --- Configuration du Recrutement ---
+# --- PAIE & FORMATION ---
+
+@admin.register(Payroll)
+class PayrollAdmin(admin.ModelAdmin):
+    list_display = ('employee', 'month', 'year', 'net_salary', 'generated_date')
+    list_filter = ('year', 'month')
+
+class EmployeeTrainingInline(admin.TabularInline):
+    model = EmployeeTraining
+    extra = 1
+
+@admin.register(Training)
+class TrainingAdmin(admin.ModelAdmin):
+    list_display = ('name', 'start_date', 'end_date', 'cost')
+    inlines = [EmployeeTrainingInline]
+
+# --- RECRUTEMENT ---
+
 @admin.register(JobOffer)
 class JobOfferAdmin(admin.ModelAdmin):
     list_display = ('title', 'department', 'contract_type', 'application_deadline', 'is_internal')
-    list_filter = ('department', 'is_internal')
-
+    list_filter = ('department', 'contract_type', 'is_internal')
 
 @admin.register(JobApplication)
 class JobApplicationAdmin(admin.ModelAdmin):
-    list_display = ('firstname', 'lastname', 'email', 'job_offer', 'status')
-    list_filter = ('status',)
+    list_display = ('firstname', 'lastname', 'job_offer', 'status', 'application_date')
+    list_filter = ('status', 'job_offer')
 
+# --- LOGS & AUDIT ---
 
-# --- Enregistrements simples pour le reste ---
+@admin.register(AuditLog)
+class AuditLogAdmin(admin.ModelAdmin):
+    list_display = ('action_date', 'employee', 'action', 'target_table')
+    readonly_fields = ('action_date',) # On ne modifie pas un log d'audit
+    list_filter = ('target_table', 'action')
+
+# --- AUTRES ENREGISTREMENTS ---
+
+@admin.register(LeaveRequest)
+class LeaveRequestAdmin(admin.ModelAdmin):
+    list_display = ('employee', 'leave_type', 'start_date', 'end_date', 'status')
+    list_filter = ('status', 'leave_type')
+
 admin.site.register(Department)
 admin.site.register(JobRole)
-admin.site.register(PerformanceReview)
+admin.site.register(JobAssignment)
+admin.site.register(Contract)
+admin.site.register(ExitEvent)
 admin.site.register(SatisfactionSurvey)
+admin.site.register(EmployeeDocument)
