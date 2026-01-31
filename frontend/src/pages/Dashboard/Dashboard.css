@@ -1,0 +1,61 @@
+.page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page-header {
+  margin-bottom: 60px; /* Plus d'espace sous le titre */
+}
+
+.page-header h1 {
+  font-size: 28px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.page-header p {
+  color: #6b7280;
+  font-size: 1rem;
+  margin-top: 8px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+  margin-bottom: 60px;
+}
+
+.card {
+  background: white;
+  padding: 32px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+
+.card-label {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #9ca3af;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+
+.card-value {
+  font-size: 26px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.chart-placeholder {
+  height: 400px;
+  background: white;
+  border: 1px dashed #d1d5db;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+}
