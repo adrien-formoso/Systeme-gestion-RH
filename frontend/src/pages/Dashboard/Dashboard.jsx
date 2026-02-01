@@ -42,6 +42,33 @@ const Dashboard = () => {
     setFilteredEmployees(result);
   }, [deptFilter, statusFilter, employees]);
 
+  // --- FONCTIONS D'EXPORT ---
+  const exportToCSV = () => {
+    if (filteredEmployees.length === 0) return;
+    const headers = ["Nom", "Prénom", "Email", "Département", "Salaire Bruto", "Contrat", "Statut"];
+    const rows = filteredEmployees.map(e => [
+      `"${e.last_name}"`,
+      `"${e.first_name}"`,
+      `"${e.email}"`,
+      `"${e.job_assignments?.[0]?.department_detail?.name || 'N/A'}"`,
+      e.salary_brut,
+      `"${e.contracts?.[0]?.contract_type || 'N/A'}"`,
+      e.status
+    ]);
+    const csvContent = [headers, ...rows].map(row => row.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.setAttribute("download", "Rapport_RH.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const exportToPDF = () => {
+    window.print();
+  };
+
   // --- CALCULS STATISTIQUES (Checklist Brief) ---
   const total = filteredEmployees.length;
   const totalPayroll = filteredEmployees.reduce((sum, e) => sum + parseFloat(e.salary_brut || 0), 0);
@@ -102,8 +129,8 @@ const Dashboard = () => {
       <header className="page-header">
         <h1>Dashboard Statistiques RH</h1>
         <div className="export-buttons">
-          <button className="btn-export csv" onClick={() => alert('Export CSV en cours...')}>Export CSV</button>
-          <button className="btn-export pdf" onClick={() => alert('Export PDF en cours...')}>Export PDF</button>
+          <button className="btn-export csv" onClick={exportToCSV}>Export CSV</button>
+          <button className="btn-export pdf" onClick={exportToPDF}>Export PDF</button>
         </div>
       </header>
 
@@ -162,8 +189,8 @@ const Dashboard = () => {
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie data={genderData} dataKey="value" innerRadius={75} outerRadius={95} paddingAngle={8}>
-                  <Cell fill="#ec4899" name="Femmes" /> {/* Rose */}
-                  <Cell fill="#6366f1" name="Hommes" /> {/* Indigo */}
+                  <Cell fill="#ec4899" name="Femmes" />
+                  <Cell fill="#6366f1" name="Hommes" />
                 </Pie>
                 <Tooltip />
                 <Legend iconType="circle" />

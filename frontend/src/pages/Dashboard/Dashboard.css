@@ -45,7 +45,7 @@
 }
 
 .csv { background: #1e293b; color: white; }
-.pdf { background: #1e293b; color: white; }
+.pdf { background:  #1e293b; color: white; }
 
 .btn-export:hover {
   transform: translateY(-2px);
@@ -148,4 +148,20 @@
 .chart-wrapper {
   height: 300px;
   width: 100%;
+}
+
+/* --- AJOUTS EXPORT PDF --- */
+@media print {
+  .export-buttons, .filter-section {
+    display: none !important;
+  }
+  .page-container {
+    padding: 0;
+    background: white;
+  }
+  .card, .chart-container {
+    box-shadow: none !important;
+    border: 1px solid #eee !important;
+    break-inside: avoid;
+  }
 }
