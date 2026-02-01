@@ -1,5 +1,5 @@
 :root {
-  --primary: #6366f1;
+  --primary: #8b5cf6;
   --bg: #f8fafc;
   --card-bg: #ffffff;
   --text-main: #1e293b;
@@ -60,7 +60,7 @@
     width: 0; height: 20px;
 }
 
-/* Cartes */
+/* Cartes épurées et cliquables */
 .member-card {
     background: var(--card-bg);
     border: 1px solid #f1f5f9;
@@ -70,6 +70,7 @@
     display: inline-block;
     box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
     transition: all 0.3s ease;
+    cursor: pointer;
 }
 
 .member-card:hover {
@@ -90,7 +91,7 @@
     display: block;
     font-size: 0.8rem;
     font-weight: 700;
-    color: var(--primary); /* Tout en indigo pour la cohérence */
+    color: var(--primary);
 }
 
 .member-dept {

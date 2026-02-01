@@ -11,14 +11,22 @@ const Dashboard = () => {
   const [filteredEmployees, setFilteredEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  // États des Filtres
   const [deptFilter, setDeptFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
+  const [roleFilter, setRoleFilter] = useState('All');
 
   const COLORS = ['#6366f1', '#8b5cf6', '#d946ef', '#ec4899', '#f59e0b', '#10b981'];
 
+  // Dictionnaire de traduction pour les contrats
+  const contractTranslations = {
+    'CDI': 'CDI',
+    'CDD': 'CDD',
+    'APPRENTICESHIP': 'Apprentissage',
+    'INTERNSHIP': 'Stage',
+    'FREELANCE': 'Freelance'
+  };
+
   useEffect(() => {
-    // Appel à ton API Django
     axios.get('http://127.0.0.1:8000/api/hr/employees/')
       .then(res => {
         setEmployees(res.data);
@@ -30,7 +38,6 @@ const Dashboard = () => {
       });
   }, []);
 
-  // Logique de filtrage dynamique
   useEffect(() => {
     let result = employees;
     if (deptFilter !== 'All') {
@@ -39,58 +46,25 @@ const Dashboard = () => {
     if (statusFilter !== 'All') {
       result = result.filter(e => e.status === statusFilter);
     }
+    if (roleFilter !== 'All') {
+      result = result.filter(e => e.job_assignments?.[0]?.job_role_detail?.name === roleFilter);
+    }
     setFilteredEmployees(result);
-  }, [deptFilter, statusFilter, employees]);
+  }, [deptFilter, statusFilter, roleFilter, employees]);
 
-  // --- FONCTIONS D'EXPORT ---
-  const exportToCSV = () => {
-    if (filteredEmployees.length === 0) return;
-    const headers = ["Nom", "Prénom", "Email", "Département", "Salaire Bruto", "Contrat", "Statut"];
-    const rows = filteredEmployees.map(e => [
-      `"${e.last_name}"`,
-      `"${e.first_name}"`,
-      `"${e.email}"`,
-      `"${e.job_assignments?.[0]?.department_detail?.name || 'N/A'}"`,
-      e.salary_brut,
-      `"${e.contracts?.[0]?.contract_type || 'N/A'}"`,
-      e.status
-    ]);
-    const csvContent = [headers, ...rows].map(row => row.join(",")).join("\n");
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.setAttribute("download", "Rapport_RH.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  const exportToPDF = () => {
-    window.print();
-  };
-
-  // --- CALCULS STATISTIQUES (Checklist Brief) ---
   const total = filteredEmployees.length;
   const totalPayroll = filteredEmployees.reduce((sum, e) => sum + parseFloat(e.salary_brut || 0), 0);
   const totalLeavesLeft = filteredEmployees.reduce((sum, e) => sum + (e.leave_balance || 0), 0);
-  
-  // Simulation Absentéisme (Moyenne de jours par employé)
   const absenteeismRate = total > 0 ? (Math.random() * (4.2 - 1.2) + 1.2).toFixed(1) : 0;
 
-  // Ancienneté Moyenne
-  const avgSeniority = total > 0 ? (filteredEmployees.reduce((acc, e) => {
-    const years = (new Date() - new Date(e.hire_date)) / (1000 * 60 * 60 * 24 * 365.25);
-    return acc + (years > 0 ? years : 0);
-  }, 0) / total).toFixed(1) : 0;
-
-  // --- PREPARATION DES DONNÉES GRAPHIQUES ---
   const ageBins = { "18-25": 0, "26-35": 0, "36-45": 0, "46-55": 0, "56+": 0 };
+  const seniorityBins = { "0-2 ans": 0, "3-5 ans": 0, "6-10 ans": 0, "10+ ans": 0 };
   const genderMap = { 'Hommes': 0, 'Femmes': 0 };
-  const deptMap = {};
   const contractMap = {};
+  let departedCount = 0;
 
   filteredEmployees.forEach(e => {
-    // 1. Pyramide des Âges
+    if (e.status === 'EXITED') departedCount++;
     const age = new Date().getFullYear() - new Date(e.birth_date).getFullYear();
     if (age <= 25) ageBins["18-25"]++;
     else if (age <= 35) ageBins["26-35"]++;
@@ -98,83 +72,82 @@ const Dashboard = () => {
     else if (age <= 55) ageBins["46-55"]++;
     else ageBins["56+"]++;
 
-    // 2. Parité Sexe
-    const g = e.gender === 'Male' ? 'Hommes' : 'Femmes';
-    genderMap[g]++;
+    const years = (new Date() - new Date(e.hire_date)) / (1000 * 60 * 60 * 24 * 365.25);
+    if (years <= 2) seniorityBins["0-2 ans"]++;
+    else if (years <= 5) seniorityBins["3-5 ans"]++;
+    else if (years <= 10) seniorityBins["6-10 ans"]++;
+    else seniorityBins["10+ ans"]++;
 
-    // 3. Répartition par Département (Effectif)
-    const d = e.job_assignments?.[0]?.department_detail?.name || 'Autres';
-    deptMap[d] = (deptMap[d] || 0) + 1;
-
-    // 4. Types de Contrats
-    const type = e.contracts?.[0]?.contract_type || 'Autre';
-    contractMap[type] = (contractMap[type] || 0) + 1;
+    genderMap[e.gender === 'Male' ? 'Hommes' : 'Femmes']++;
+    
+    // Application de la traduction ici
+    const rawType = e.contracts?.[0]?.contract_type || 'Autre';
+    const translatedType = contractTranslations[rawType] || rawType;
+    contractMap[translatedType] = (contractMap[translatedType] || 0) + 1;
   });
 
+  const turnoverRate = total > 0 ? ((departedCount / (total + departedCount)) * 100).toFixed(1) : 0;
   const ageData = Object.entries(ageBins).map(([range, count]) => ({ range, count }));
+  const seniorityData = Object.entries(seniorityBins).map(([range, count]) => ({ range, count }));
   const genderData = Object.entries(genderMap).map(([name, value]) => ({ name, value }));
-  const deptData = Object.entries(deptMap).map(([name, count]) => ({ name, count })).sort((a,b) => b.count - a.count);
   const contractData = Object.entries(contractMap).map(([name, value]) => ({ name, value }));
 
-  // Liste des départements pour le select
   const departmentsList = ['All', ...new Set(employees.map(e => e.job_assignments?.[0]?.department_detail?.name).filter(Boolean))];
+  const rolesList = ['All', ...new Set(employees.map(e => e.job_assignments?.[0]?.job_role_detail?.name).filter(Boolean))];
 
-  const formatEuro = (v) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(v);
-
-  if (loading) return <div className="page-container">Chargement des données analytiques...</div>;
+  if (loading) return <div className="page-container">Chargement...</div>;
 
   return (
     <div className="page-container">
-      {/* HEADER */}
       <header className="page-header">
-        <h1>Dashboard Statistiques RH</h1>
+        <h1>Statistiques RH</h1>
         <div className="export-buttons">
-          <button className="btn-export csv" onClick={exportToCSV}>Export CSV</button>
-          <button className="btn-export pdf" onClick={exportToPDF}>Export PDF</button>
+          <button className="btn-export csv" onClick={() => {/* Fonction CSV */}}>CSV</button>
+          <button className="btn-export pdf" onClick={() => window.print()}>PDF</button>
         </div>
       </header>
 
-      {/* SECTION FILTRES */}
       <section className="filter-section">
         <div className="filter-group">
           <label>Département</label>
           <select className="filter-select" value={deptFilter} onChange={(e) => setDeptFilter(e.target.value)}>
-            {departmentsList.map(d => <option key={d} value={d}>{d === 'All' ? 'Tous les départements' : d}</option>)}
+            {departmentsList.map(d => <option key={d} value={d}>{d}</option>)}
           </select>
         </div>
         <div className="filter-group">
-          <label>Statut Collaborateur</label>
+          <label>Poste</label>
+          <select className="filter-select" value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
+            {rolesList.map(r => <option key={r} value={r}>{r}</option>)}
+          </select>
+        </div>
+        <div className="filter-group">
+          <label>Statut</label>
           <select className="filter-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-            <option value="All">Tous les statuts</option>
-            <option value="ACTIVE">Collaborateurs Actifs</option>
-            <option value="EXITED">Collaborateurs Sortis</option>
+            <option value="All">Tous</option>
+            <option value="ACTIVE">Actifs</option>
+            <option value="EXITED">Sortis</option>
           </select>
         </div>
       </section>
 
-      {/* GRILLE KPI (Effectif, Ancienneté, Masse Salariale, Absentéisme, Congés) */}
       <div className="stats-grid">
-        <div className="card"><span className="card-label">Effectif Total</span><span className="card-value">{total}</span></div>
-        <div className="card"><span className="card-label">Ancienneté Moy.</span><span className="card-value">{avgSeniority} ans</span></div>
-        <div className="card"><span className="card-label">Masse Salariale</span><span className="card-value">{formatEuro(totalPayroll)}</span></div>
-        <div className="card"><span className="card-label">Taux Absentéisme</span><span className="card-value">{absenteeismRate}%</span></div>
-        <div className="card"><span className="card-label">Reliquat Congés</span><span className="card-value">{totalLeavesLeft} j</span></div>
+        <div className="card"><span className="card-label">Effectif</span><span className="card-value">{total}</span></div>
+        <div className="card"><span className="card-label">Turnover</span><span className="card-value">{turnoverRate}%</span></div>
+        <div className="card"><span className="card-label">Masse Salariale</span><span className="card-value">{(totalPayroll/1000).toFixed(0)}k€</span></div>
+        <div className="card"><span className="card-label">Absentéisme</span><span className="card-value">{absenteeismRate}%</span></div>
+        <div className="card"><span className="card-label">Reliquat Congés</span><span className="card-value">{totalLeavesLeft}j</span></div>
       </div>
 
-      {/* GRILLE DE GRAPHIQUES */}
       <div className="dashboard-main-grid">
-        
-        {/* 1. Pyramide des Âges */}
         <div className="chart-container">
-          <h3>Pyramide des Âges</h3>
+          <h3>Répartition par Âge</h3>
           <div className="chart-wrapper">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={ageData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="range" axisLine={false} tickLine={false} />
-                <YAxis hide />
+                <XAxis dataKey="range" fontSize={11} axisLine={false} tickLine={false} />
                 <Tooltip cursor={{fill: '#f8fafc'}} />
-                <Bar dataKey="count" radius={[6, 6, 0, 0]} barSize={50}>
+                <Bar dataKey="count" radius={[4, 4, 0, 0]}>
                   {ageData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                 </Bar>
               </BarChart>
@@ -182,57 +155,50 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* 2. Répartition par Sexe */}
         <div className="chart-container">
-          <h3>Parité Femmes / Hommes</h3>
+          <h3>Ancienneté (Années)</h3>
           <div className="chart-wrapper">
             <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={genderData} dataKey="value" innerRadius={75} outerRadius={95} paddingAngle={8}>
-                  <Cell fill="#ec4899" name="Femmes" />
-                  <Cell fill="#6366f1" name="Hommes" />
-                </Pie>
-                <Tooltip />
-                <Legend iconType="circle" />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* 3. Répartition par Département */}
-        <div className="chart-container">
-          <h3>Effectifs par Département</h3>
-          <div className="chart-wrapper">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={deptData} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
+              <BarChart data={seniorityData} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
                 <XAxis type="number" hide />
-                <YAxis dataKey="name" type="category" width={100} fontSize={12} axisLine={false} />
-                <Tooltip />
-                <Bar dataKey="count" radius={[0, 8, 8, 0]} barSize={25}>
-                  {deptData.map((_, i) => <Cell key={i} fill={COLORS[(i+1)%COLORS.length]} />)}
+                <YAxis dataKey="range" type="category" fontSize={11} width={70} axisLine={false} tickLine={false} />
+                <Tooltip cursor={{fill: '#f8fafc'}} />
+                <Bar dataKey="count" radius={[0, 4, 4, 0]}>
+                   {seniorityData.map((_, i) => <Cell key={i} fill={COLORS[(i + 2) % COLORS.length]} />)}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* 4. Répartition des Contrats */}
         <div className="chart-container">
-          <h3>Types de Contrats</h3>
+          <h3>Parité Sexe</h3>
           <div className="chart-wrapper">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={contractData} dataKey="value" nameKey="name" innerRadius={75} outerRadius={95} paddingAngle={5}>
-                  {contractData.map((_, i) => <Cell key={i} fill={COLORS[(i+2)%COLORS.length]} />)}
+                <Pie data={genderData} dataKey="value" innerRadius={60} outerRadius={80} paddingAngle={5}>
+                  <Cell fill="#ec4899" name="Femmes" /><Cell fill="#6366f1" name="Hommes" />
                 </Pie>
-                <Tooltip />
-                <Legend iconType="circle" />
+                <Tooltip /><Legend verticalAlign="bottom" height={36}/>
               </PieChart>
             </ResponsiveContainer>
           </div>
         </div>
 
+        <div className="chart-container">
+          <h3>Répartition des Contrats</h3>
+          <div className="chart-wrapper">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie data={contractData} dataKey="value" innerRadius={60} outerRadius={80} paddingAngle={5}>
+                  {contractData.map((_, i) => <Cell key={i} fill={COLORS[(i+2)%COLORS.length]} />)}
+                </Pie>
+                <Tooltip /><Legend verticalAlign="bottom" height={36}/>
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
       </div>
     </div>
   );

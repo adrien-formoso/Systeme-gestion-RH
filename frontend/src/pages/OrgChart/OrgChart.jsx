@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import './OrgChart.css';
 
 const OrgChart = () => {
     const [employees, setEmployees] = useState([]);
     const [filteredDept, setFilteredDept] = useState('All');
     const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
 
     useEffect(() => {
         axios.get('http://127.0.0.1:8000/api/hr/employees/')
@@ -53,7 +55,8 @@ const OrgChart = () => {
         
         return (
             <li key={node.id}>
-                <div className="member-card">
+                {/* Au clic, on redirige vers la page de profil détaillée de l'employé */}
+                <div className="member-card" onClick={() => navigate(`/employees/${node.id}`)}>
                     <span className="member-name">{node.firstname} {node.lastname}</span>
                     <span className="member-role">
                         {node.job_assignments?.[0]?.job_role_detail?.name || 'Poste'}
