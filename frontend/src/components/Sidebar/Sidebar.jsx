@@ -1,15 +1,17 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, Wallet, Calendar, Briefcase, Settings, LogOut } from 'lucide-react';
+// Remplacement de Sitemap par Network qui ressemble à un organigramme
+import { Users, Wallet, Calendar, Briefcase, BarChart3, Network, Settings, LogOut } from 'lucide-react';
 import './Sidebar.css';
 
 const Sidebar = () => {
   const location = useLocation();
   const menuItems = [
-    { path: '/', icon: <LayoutDashboard size={18} />, label: 'Tableau de bord' },
     { path: '/employees', icon: <Users size={18} />, label: 'Collaborateurs' },
-    { path: '/payroll', icon: <Wallet size={18} />, label: 'Paie' },
-    { path: '/leaves', icon: <Calendar size={18} />, label: 'Congés' },
+    { path: '/leaves', icon: <Calendar size={18} />, label: 'Congés & Absences' },
     { path: '/recruitment', icon: <Briefcase size={18} />, label: 'Recrutement' },
+    { path: '/payroll', icon: <Wallet size={18} />, label: 'Paie' },
+    { path: '/statistics', icon: <BarChart3 size={18} />, label: 'Statistiques RH' },
+    { path: '/org-chart', icon: <Network size={18} />, label: 'Organigramme' },
   ];
 
   return (
