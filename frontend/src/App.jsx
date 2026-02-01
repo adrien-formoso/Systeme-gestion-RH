@@ -1,8 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Sidebar from './components/Sidebar/Sidebar';
 import Dashboard from './pages/Dashboard/Dashboard'; 
-import EmployeeDirectory from './pages/Employees/EmployeeDirectory';
-import OrgChart from './pages/OrgChart/OrgChart'; // <-- AJOUTER CET IMPORT
+import EmployeeList from './pages/Employees/EmployeeList';
+import OrgChart from './pages/OrgChart/OrgChart'; 
 import './App.css';
 
 function App() {
@@ -13,7 +13,7 @@ function App() {
         <main className="main-content">
           <Routes>
             <Route path="/" element={<Navigate to="/statistics" />} />
-            <Route path="/employees" element={<EmployeeDirectory />} />
+            <Route path="/employees" element={<EmployeeList />} />
             <Route path="/leaves" element={<div><h1>📅 Congés & Absences</h1><p>Module en cours de développement...</p></div>} />
             <Route path="/recruitment" element={<div><h1>🤝 Recrutement</h1><p>Module en cours de développement...</p></div>} />
             <Route path="/payroll" element={<div><h1>💰 Paie</h1><p>Module en cours de développement...</p></div>} />
