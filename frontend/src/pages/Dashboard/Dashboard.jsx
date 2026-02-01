@@ -17,7 +17,6 @@ const Dashboard = () => {
 
   const COLORS = ['#6366f1', '#8b5cf6', '#d946ef', '#ec4899', '#f59e0b', '#10b981'];
 
-  // Dictionnaire de traduction pour les contrats
   const contractTranslations = {
     'CDI': 'CDI',
     'CDD': 'CDD',
@@ -52,6 +51,29 @@ const Dashboard = () => {
     setFilteredEmployees(result);
   }, [deptFilter, statusFilter, roleFilter, employees]);
 
+  // --- LOGIQUE D'EXPORT CSV RÉ-INSTALLÉE ---
+  const exportToCSV = () => {
+    if (filteredEmployees.length === 0) return;
+    const headers = ["Nom", "Prénom", "Email", "Département", "Salaire", "Contrat", "Statut"];
+    const rows = filteredEmployees.map(e => [
+      `"${e.lastname}"`,
+      `"${e.firstname}"`,
+      `"${e.email}"`,
+      `"${e.job_assignments?.[0]?.department_detail?.name || 'N/A'}"`,
+      e.salary_brut,
+      `"${contractTranslations[e.contracts?.[0]?.contract_type] || 'N/A'}"`,
+      e.status
+    ]);
+    const csvContent = [headers, ...rows].map(row => row.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.setAttribute("download", "Rapport_Statistiques_RH.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const total = filteredEmployees.length;
   const totalPayroll = filteredEmployees.reduce((sum, e) => sum + parseFloat(e.salary_brut || 0), 0);
   const totalLeavesLeft = filteredEmployees.reduce((sum, e) => sum + (e.leave_balance || 0), 0);
@@ -80,7 +102,6 @@ const Dashboard = () => {
 
     genderMap[e.gender === 'Male' ? 'Hommes' : 'Femmes']++;
     
-    // Application de la traduction ici
     const rawType = e.contracts?.[0]?.contract_type || 'Autre';
     const translatedType = contractTranslations[rawType] || rawType;
     contractMap[translatedType] = (contractMap[translatedType] || 0) + 1;
@@ -102,8 +123,9 @@ const Dashboard = () => {
       <header className="page-header">
         <h1>Statistiques RH</h1>
         <div className="export-buttons">
-          <button className="btn-export csv" onClick={() => {/* Fonction CSV */}}>CSV</button>
-          <button className="btn-export pdf" onClick={() => window.print()}>PDF</button>
+          {/* BONTONS BRANCHÉS AUX FONCTIONS */}
+          <button className="btn-export csv" onClick={exportToCSV}>Exporter CSV</button>
+          <button className="btn-export pdf" onClick={() => window.print()}>Exporter PDF</button>
         </div>
       </header>
 
@@ -192,7 +214,7 @@ const Dashboard = () => {
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie data={contractData} dataKey="value" innerRadius={60} outerRadius={80} paddingAngle={5}>
-                  {contractData.map((_, i) => <Cell key={i} fill={COLORS[(i+2)%COLORS.length]} />)}
+                  {contractData.map((_, i) => <Cell key={i} fill={COLORS[(i+3)%COLORS.length]} />)}
                 </Pie>
                 <Tooltip /><Legend verticalAlign="bottom" height={36}/>
               </PieChart>
