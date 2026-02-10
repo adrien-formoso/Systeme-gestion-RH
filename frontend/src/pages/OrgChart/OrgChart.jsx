@@ -55,7 +55,6 @@ const OrgChart = () => {
         
         return (
             <li key={node.id}>
-                {/* Au clic, on redirige vers la page de profil détaillée de l'employé */}
                 <div className="member-card" onClick={() => navigate(`/employees/${node.id}`)}>
                     <span className="member-name">{node.firstname} {node.lastname}</span>
                     <span className="member-role">
@@ -83,6 +82,7 @@ const OrgChart = () => {
             <header className="page-header">
                 <h1>Organigramme</h1>
                 
+                {/* Bloc de sélection restauré */}
                 <div className="filter-group">
                     <label>Département</label>
                     <select 
@@ -95,6 +95,7 @@ const OrgChart = () => {
                 </div>
             </header>
 
+            {/* Viewport blanc qui limite l'expansion sur la page */}
             <div className="org-viewport">
                 <div className="org-canvas">
                     <div className="org-tree">

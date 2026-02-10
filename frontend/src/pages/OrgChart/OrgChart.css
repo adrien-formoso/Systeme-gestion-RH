@@ -1,112 +1,108 @@
-:root {
-  --primary: #8b5cf6;
-  --bg: #f8fafc;
-  --card-bg: #ffffff;
-  --text-main: #1e293b;
-  --text-muted: #64748b;
+/* --- CONTENEUR GLOBAL --- */
+.page-container {
+    padding: 30px;
+    background: var(--color-bg); /* Fond gris clair de l'app */
+    min-height: 100vh;
+    box-sizing: border-box;
 }
 
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+/* --- BLOC DE SÉLECTION (Le carré blanc de filtrage) --- */
+.filter-group {
+    background: #ffffff;
+    padding: 12px 20px;
+    border-radius: 12px;
+    border: 1px solid var(--color-border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.filter-group label {
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+}
+
+.filter-select {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+    font-family: inherit;
+    font-weight: 600;
+    color: var(--color-primary);
+    background: var(--color-bg);
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.filter-select:focus {
+    border-color: var(--color-brand);
+}
+
+/* --- LE VIEWPORT (Conteneur blanc limité) --- */
 .org-viewport {
-    flex-grow: 1;
-    overflow: auto;
-    background: var(--bg);
-    padding: 60px;
+    background: #ffffff; /* Carré blanc qui limite l'expansion */
+    border: 1px solid var(--color-border);
     border-radius: 24px;
-    border: 1px solid #f1f5f9;
+    padding: 60px;
+    overflow: auto; /* Permet de scroller à l'intérieur sans casser le menu */
+    box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+    max-height: calc(100vh - 200px); /* Empêche de descendre sous la page */
+    position: relative;
 }
 
-.org-canvas {
-    display: inline-block;
-    min-width: 100%;
+.org-canvas { 
+    display: inline-block; 
+    min-width: 100%; 
 }
+
+/* --- STRUCTURE DE L'ARBRE --- */
+.org-tree ul { display: flex; justify-content: center; position: relative; padding-top: 20px; }
+.org-tree li { text-align: center; list-style-type: none; position: relative; padding: 20px 10px 0 10px; }
 
 /* Connecteurs */
-.org-tree ul {
-    display: flex;
-    justify-content: center;
-    position: relative;
-    padding-top: 20px;
-}
-
-.org-tree li {
-    text-align: center;
-    list-style-type: none;
-    position: relative;
-    padding: 20px 10px 0 10px;
-}
-
 .org-tree li::before, .org-tree li::after {
-    content: '';
-    position: absolute; top: 0; right: 50%;
-    border-top: 1px solid #e2e8f0;
-    width: 50%; height: 20px;
+    content: ''; position: absolute; top: 0; right: 50%;
+    border-top: 1px solid var(--color-border); width: 50%; height: 20px;
 }
-
-.org-tree li::after {
-    right: auto; left: 50%;
-    border-left: 1px solid #e2e8f0;
-}
-
+.org-tree li::after { right: auto; left: 50%; border-left: 1px solid var(--color-border); }
 .org-tree li:only-child::after, .org-tree li:only-child::before { display: none; }
 .org-tree li:only-child { padding-top: 0; }
 .org-tree li:first-child::before, .org-tree li:last-child::after { border: 0 none; }
-.org-tree li:last-child::before { border-right: 1px solid #e2e8f0; border-radius: 0 4px 0 0; }
+.org-tree li:last-child::before { border-right: 1px solid var(--color-border); border-radius: 0 4px 0 0; }
 .org-tree li:first-child::after { border-radius: 4px 0 0 0; }
-
 .org-tree ul ul::before {
-    content: '';
-    position: absolute; top: 0; left: 50%;
-    border-left: 1px solid #e2e8f0;
-    width: 0; height: 20px;
+    content: ''; position: absolute; top: 0; left: 50%;
+    border-left: 1px solid var(--color-border); width: 0; height: 20px;
 }
 
-/* Cartes épurées et cliquables */
+/* CARTES */
 .member-card {
-    background: var(--card-bg);
-    border: 1px solid #f1f5f9;
-    width: 180px;
-    padding: 20px;
-    border-radius: 16px;
+    background: #ffffff;
+    border: 1px solid var(--color-border);
+    width: 180px; padding: 20px; border-radius: 16px;
     display: inline-block;
-    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
-    transition: all 0.3s ease;
-    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    transition: all 0.3s ease; cursor: pointer;
 }
 
 .member-card:hover {
     transform: translateY(-3px);
     box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
-    border-color: var(--primary);
+    border-color: var(--color-brand);
 }
 
-.member-name {
-    display: block;
-    font-weight: 700;
-    font-size: 0.95rem;
-    color: var(--text-main);
-    margin-bottom: 4px;
-}
-
-.member-role {
-    display: block;
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: var(--primary);
-}
-
-.member-dept {
-    display: block;
-    font-size: 0.65rem;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    margin-top: 10px;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-}
-
-.no-data {
-    padding: 40px;
-    font-weight: 600;
-    color: var(--text-muted);
-    text-align: center;
-}
+.member-name { display: block; font-weight: 700; font-size: 0.95rem; color: var(--color-primary); margin-bottom: 4px; }
+.member-role { display: block; font-size: 0.8rem; font-weight: 700; color: var(--color-brand); }
+.member-dept { display: block; font-size: 0.65rem; text-transform: uppercase; color: var(--color-text-muted); margin-top: 10px; font-weight: 700; }
+.no-data { padding: 40px; font-weight: 600; color: var(--color-text-muted); text-align: center; }

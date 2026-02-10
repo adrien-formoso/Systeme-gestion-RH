@@ -1,10 +1,16 @@
+/* Layout global : Sidebar fixe à gauche + Contenu à droite */
 .app-layout {
   display: flex;
-  min-height: 100vh;
+  height: 100vh; /* Force la hauteur de l'écran */
+  overflow: hidden; /* Empêche le scroll global */
 }
 
+/* La zone de contenu principale */
 .main-content {
-  flex-grow: 1;
-  margin-left: 240px; /* Doit être égal à la largeur de la sidebar */
+  flex: 1; /* Prend tout l'espace restant */
+  margin-left: 250px; /* DOIT correspondre à la largeur de ta sidebar */
+  height: 100vh;
+  overflow-y: auto; /* Permet le scroll UNIQUEMENT ici */
+  background-color: var(--color-bg);
   padding: 40px;
 }

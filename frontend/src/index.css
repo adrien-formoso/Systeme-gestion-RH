@@ -1,15 +1,25 @@
 :root {
-  font-family: 'Inter', system-ui, sans-serif;
-  background-color: #f3f4f6; /* Ton gris préféré */
-  color: #1f2937; /* Un anthracite doux plutôt que noir pur */
+  /* --- PALETTE GLOBALE (DA Smart & Mauve) --- */
+  --color-primary: #1e293b;   /* Anthracite pour le texte principal */
+  --color-brand: #8b5cf6;     /* TON MAUVE (Violet) pour les actions */
+  --color-brand-light: #ede9fe; /* Mauve très pâle pour les fonds de badges/icones */
+  --color-bg: #f8fafc;        /* Gris perle très léger pour le fond de page */
+  --color-card: #ffffff;      /* Blanc pur pour les cartes */
+  --color-border: #e2e8f0;    /* Gris clair pour les bordures fines */
+  --color-text-muted: #64748b; /* Gris moyen pour les sous-titres */
+  
+  /* --- STATUS --- */
+  --color-success: #10b981;
+  --color-danger: #ef4444;
+
+  /* --- POLICE --- */
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
+  background-color: var(--color-bg);
+  color: var(--color-primary);
   min-height: 100vh;
 }
