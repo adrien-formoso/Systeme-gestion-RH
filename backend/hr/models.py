@@ -71,6 +71,7 @@ class Employee(models.Model):
     leave_balance = models.IntegerField(default=25)
     status = models.CharField(max_length=20, choices=EmployeeStatus.choices, default=EmployeeStatus.ACTIVE)
     manager = models.ForeignKey("self", on_delete=models.SET_NULL, null=True, blank=True, related_name="subordinates")
+    internal_note = models.TextField(blank=True, null=True, help_text="Note confidentielle RH")
 
     def __str__(self):
         return f"{self.firstname} {self.lastname} ({self.employee_number})"
