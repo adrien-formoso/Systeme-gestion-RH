@@ -10,7 +10,9 @@ const OrgChart = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        axios.get('http://127.0.0.1:8000/api/hr/employees/')
+        // MODIFICATION ICI : On appelle la route publique sécurisée
+        // Cela permet à l'employé de recevoir toute la liste (noms/postes) sans les salaires
+        axios.get('http://127.0.0.1:8000/api/hr/org-chart-data/')
             .then(res => {
                 setEmployees(res.data);
                 setLoading(false);
@@ -21,16 +23,18 @@ const OrgChart = () => {
             });
     }, []);
 
+    // MODIFICATION ICI : On lit 'e.department' directement (grâce au nouveau serializer)
     const departments = [
         'All', 
-        ...new Set(employees.map(e => e.job_assignments?.[0]?.department_detail?.name).filter(Boolean))
+        ...new Set(employees.map(e => e.department).filter(Boolean))
     ];
 
     const hasDeptSubordinates = (mId) => {
         return employees.some(e => {
             const managerId = e.manager;
+            // Adaptation ici aussi pour lire e.department
             return managerId === mId && (
-                e.job_assignments?.[0]?.department_detail?.name === filteredDept || 
+                e.department === filteredDept || 
                 hasDeptSubordinates(e.id)
             );
         });
@@ -41,7 +45,9 @@ const OrgChart = () => {
             .filter(emp => {
                 const matchesManager = emp.manager === managerId;
                 if (filteredDept === 'All') return matchesManager;
-                const isInDept = emp.job_assignments?.[0]?.department_detail?.name === filteredDept;
+                
+                // Adaptation ici : lecture directe
+                const isInDept = emp.department === filteredDept;
                 return matchesManager && (isInDept || hasDeptSubordinates(emp.id));
             })
             .map(emp => ({
@@ -55,13 +61,14 @@ const OrgChart = () => {
         
         return (
             <li key={node.id}>
+                {/* On garde ton design exact */}
                 <div className="member-card" onClick={() => navigate(`/employees/${node.id}`)}>
-                    <span className="member-name">{node.firstname} {node.lastname}</span>
+                    <span className="member-name">{node.name}</span> {/* node.name vient du serializer */}
                     <span className="member-role">
-                        {node.job_assignments?.[0]?.job_role_detail?.name || 'Poste'}
+                        {node.job_title || 'Poste'} {/* node.job_title vient du serializer */}
                     </span>
                     <span className="member-dept">
-                        {node.job_assignments?.[0]?.department_detail?.name}
+                        {node.department} {/* node.department vient du serializer */}
                     </span>
                 </div>
                 {hasChildren && (
@@ -73,6 +80,7 @@ const OrgChart = () => {
         );
     };
 
+    // On cherche la racine (celui qui n'a pas de manager)
     const treeData = buildTree(null);
 
     if (loading) return <div className="page-container">Chargement...</div>;
@@ -82,7 +90,6 @@ const OrgChart = () => {
             <header className="page-header">
                 <h1>Organigramme</h1>
                 
-                {/* Bloc de sélection restauré */}
                 <div className="filter-group">
                     <label>Département</label>
                     <select 
@@ -95,14 +102,16 @@ const OrgChart = () => {
                 </div>
             </header>
 
-            {/* Viewport blanc qui limite l'expansion sur la page */}
             <div className="org-viewport">
                 <div className="org-canvas">
                     <div className="org-tree">
                         {treeData.length > 0 ? (
                             <ul>{treeData.map(root => renderNode(root))}</ul>
                         ) : (
-                            <div className="no-data">Aucune donnée hiérarchique détectée.</div>
+                            <div className="no-data">
+                                Aucune donnée racine détectée.<br/>
+                                <small>(Vérifiez qu'il existe un employé sans manager, ex: PDG)</small>
+                            </div>
                         )}
                     </div>
                 </div>

@@ -14,6 +14,9 @@ const EmployeeDetail = () => {
   const [note, setNote] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
+  // VÉRIFICATION DES DROITS (RH ou Admin seulement)
+  const isHR = localStorage.getItem('user_role') === 'HR_ADMIN' || localStorage.getItem('is_staff') === 'true';
+
   useEffect(() => {
     fetchEmployee();
   }, [id]);
@@ -22,8 +25,10 @@ const EmployeeDetail = () => {
     axios.get(`http://127.0.0.1:8000/api/hr/employees/${id}/`)
       .then(res => {
         setEmployee(res.data);
+        // Si l'API ne renvoie pas le champ (grâce au serializer), on met vide
         setNote(res.data.internal_note || '');
-      });
+      })
+      .catch(err => console.error("Erreur chargement", err));
   };
 
   const handleSaveNote = async () => {
@@ -52,7 +57,10 @@ const EmployeeDetail = () => {
         </button>
         <div className="header-actions">
            <button className="btn-outline" onClick={() => navigate('/org-chart')}><Network size={18}/> Voir organigramme</button>
-           <button className="btn-primary" onClick={() => navigate(`/employees/edit/${id}`)}><Edit size={18}/> Modifier</button>
+           {/* Seul le RH peut modifier la fiche complète */}
+           {isHR && (
+             <button className="btn-primary" onClick={() => navigate(`/employees/edit/${id}`)}><Edit size={18}/> Modifier</button>
+           )}
         </div>
       </div>
       
@@ -87,7 +95,7 @@ const EmployeeDetail = () => {
               <p><span>Naissance</span> {new Date(employee.birth_date).toLocaleDateString()}</p>
               <p><span>Nationalité</span> {employee.nationality || 'Non renseignée'}</p>
               <p><span>Situation</span> {employee.marital_status}</p>
-              <p><span>Sécu. Sociale</span> {employee.social_security_number}</p>
+              <p><span>Sécu. Sociale</span> {isHR ? employee.social_security_number : 'Masqué'}</p>
             </div>
             <div className="card info-block">
               <h3><MessageSquare size={16}/> Contact</h3>
@@ -105,16 +113,17 @@ const EmployeeDetail = () => {
             <p><span>Matricule</span> {employee.employee_number}</p>
             <p><span>Embauche</span> {new Date(employee.hire_date).toLocaleDateString()}</p>
             <p><span>Contrat</span> {employee.contracts?.[0]?.contract_type || 'N/A'}</p>
+            {/* On cache le salaire aux non-RH aussi, par sécurité, ou on le laisse si l'employé doit voir le sien */}
             <p><span>Salaire Brut</span> {employee.salary_brut} €</p>
             <p><span>Manager</span> {employee.manager_name}</p>
           </div>
         )}
 
-        {/* ONGLET HISTORIQUE (MIS A JOUR) */}
+        {/* ONGLET HISTORIQUE */}
         {tab === 'history' && (
           <div className="card">
             
-            {/* 1. Bloc Satisfaction (DONNÉES RÉELLES) */}
+            {/* 1. Bloc Satisfaction */}
             <h3 className="section-title"><Smile size={18}/> Bien-être & Satisfaction</h3>
             <div className="fields-grid" style={{marginBottom: '32px'}}>
                 {employee.satisfaction_surveys?.length > 0 ? (
@@ -123,8 +132,6 @@ const EmployeeDetail = () => {
                             <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px'}}>
                                 <strong style={{color: 'var(--color-primary)'}}>Enquête du {new Date(sat.survey_date).toLocaleDateString()}</strong>
                             </div>
-                            
-                            {/* Grille des scores */}
                             <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '0.85rem'}}>
                                 <div style={{display: 'flex', justifyContent: 'space-between'}}>
                                     <span style={{color: 'var(--color-text-muted)'}}>Job:</span> 
@@ -152,19 +159,16 @@ const EmployeeDetail = () => {
                 )}
             </div>
 
-            {/* 2. Bloc Évaluations (AVEC PLUS D'INFOS) */}
+            {/* 2. Bloc Évaluations */}
             <h3 className="section-title"><History size={18}/> Performance & Carrière</h3>
             <div style={{ marginBottom: '32px' }}>
               {employee.performance_reviews?.length > 0 ? (
                 employee.performance_reviews.map(rev => (
                   <div key={rev.id} className="history-item">
-                    {/* Ligne 1 : Date et Note */}
                     <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px'}}>
                       <strong style={{color: 'var(--color-primary)'}}>Revue du {new Date(rev.review_date).toLocaleDateString()}</strong>
                       <span className="status-pill active">Note Globale : {rev.performance_rating}/4</span>
                     </div>
-
-                    {/* Ligne 2 : Détails techniques (Augmentation, Formation) */}
                     <div style={{display: 'flex', gap: '20px', marginBottom: '8px', fontSize: '0.9rem', color: 'var(--color-primary)'}}>
                         <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}>
                             <TrendingUp size={16} color="var(--color-success)"/> 
@@ -175,8 +179,6 @@ const EmployeeDetail = () => {
                             Formations : <strong>{rev.training_times_last_year}</strong>
                         </div>
                     </div>
-
-                    {/* Ligne 3 : Commentaire */}
                     <p style={{color: 'var(--color-text-muted)', fontSize: '0.9rem', margin: 0, borderTop: '1px solid #e2e8f0', paddingTop: '8px'}}>
                       {rev.comments ? `"${rev.comments}"` : "Aucun commentaire manager enregistré."}
                     </p>
@@ -189,26 +191,30 @@ const EmployeeDetail = () => {
               )}
             </div>
             
-            {/* 3. Note Interne */}
-            <h3 className="section-title"><MessageSquare size={18}/> Note Interne RH</h3>
-            <div className="input-group" style={{marginBottom: 0}}>
-              <textarea 
-                className="note-area" 
-                placeholder="Rédiger une note confidentielle sur ce collaborateur (visible uniquement par les RH). Pensez à enregistrer."
-                style={{ minHeight: '120px', width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid var(--color-border)', fontFamily: 'inherit' }}
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-              ></textarea>
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '12px' }}>
-                <button 
-                  className="btn-primary" 
-                  onClick={handleSaveNote}
-                  disabled={isSaving}
-                >
-                  <Save size={18}/> {isSaving ? 'Enregistrement...' : 'Enregistrer la note'}
-                </button>
-              </div>
-            </div>
+            {/* 3. Note Interne (VISIBLE SEULEMENT PAR LES RH) */}
+            {isHR && (
+                <>
+                    <h3 className="section-title"><MessageSquare size={18}/> Note Interne RH (Confidentiel)</h3>
+                    <div className="input-group" style={{marginBottom: 0}}>
+                    <textarea 
+                        className="note-area" 
+                        placeholder="Rédiger une note confidentielle sur ce collaborateur (visible uniquement par les RH)."
+                        style={{ minHeight: '120px', width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid var(--color-border)', fontFamily: 'inherit' }}
+                        value={note}
+                        onChange={(e) => setNote(e.target.value)}
+                    ></textarea>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '12px' }}>
+                        <button 
+                        className="btn-primary" 
+                        onClick={handleSaveNote}
+                        disabled={isSaving}
+                        >
+                        <Save size={18}/> {isSaving ? 'Enregistrement...' : 'Enregistrer la note'}
+                        </button>
+                    </div>
+                    </div>
+                </>
+            )}
 
           </div>
         )}

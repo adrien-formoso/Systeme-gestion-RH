@@ -117,6 +117,27 @@ class EmployeeSerializer(serializers.ModelSerializer):
             return f"{obj.manager.firstname} {obj.manager.lastname}"
         return None
 
+    # --- SÉCURITÉ : Cacher la note interne aux non-RH ---
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        request = self.context.get('request')
+        
+        # Si on n'a pas de requête ou si l'utilisateur n'est pas authentifié correctement
+        if not request or not request.user.is_authenticated:
+            data.pop('internal_note', None)
+            return data
+
+        # Vérification du rôle
+        user = request.user
+        is_admin_django = user.is_staff
+        is_hr_admin = hasattr(user, 'employee_profile') and user.employee_profile.role == Role.HR_ADMIN
+
+        # Si l'utilisateur n'est NI Admin Django, NI RH_ADMIN, on retire la note
+        if not (is_admin_django or is_hr_admin):
+            data.pop('internal_note', None)
+
+        return data
+
 class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -142,10 +163,24 @@ class UserSerializer(serializers.ModelSerializer):
 # --- SERIALIZER POUR ORGANIGRAMME (Public mais sécurisé) ---
 class OrgChartSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField()
+    department = serializers.SerializerMethodField() 
+    job_title = serializers.SerializerMethodField() 
 
     class Meta:
         model = Employee
-        fields = ['id', 'name', 'manager', 'role']
+        fields = ['id', 'name', 'manager', 'role', 'department', 'job_title']
 
     def get_name(self, obj):
         return f"{obj.firstname} {obj.lastname}"
+
+    def get_department(self, obj):
+        assignment = obj.job_assignments.first()
+        if assignment and assignment.department:
+            return assignment.department.name
+        return "Non assigné"
+
+    def get_job_title(self, obj):
+        assignment = obj.job_assignments.first()
+        if assignment and assignment.job_role:
+            return assignment.job_role.name
+        return "Poste inconnu"
