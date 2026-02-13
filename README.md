@@ -1,121 +1,147 @@
-# Système de Gestion RH - Dashboard Analytics
 
-Ce projet est une application complète de gestion des ressources humaines.  
-Elle permet d'importer des données complexes depuis un dataset CSV, de les enrichir via des scripts de génération de données aléatoires, et de les exposer via une API REST documentée.
+# HR Smart System
 
----
+HR Smart System est une solution SIRH (Système d'Information Ressources Humaines) moderne, conçue pour centraliser la gestion administrative, visualiser la hiérarchie et simplifier la paie.
 
-## Fonctionnalités Clés
-
-- **Importation Intelligente** : Migration des données à partir d'un fichier CSV (`HR-Employee-Attrition.csv`) vers une base de données relationnelle normalisée.
-- **Enrichissement de Données (Faker)** : Génération automatique de prénoms, noms, dates d'embauche et contrats pour rendre le dataset réaliste.
-- **Gestion Hiérarchique** : Système de management où chaque employé est lié à un supérieur.
-- **Administration Avancée** : Interface Django Admin personnalisée avec filtres par attrition, genre et hiérarchie temporelle.
-- **Architecture Découplée** : Backend Django performant et Frontend moderne (Vite / React).
+L'interface se distingue par son design "Smart & Mauve", offrant une expérience utilisateur fluide, épurée et réactive.
 
 ---
 
-## Installation et Configuration
+## Stack Technique & Architecture
 
-### 1. Backend (Django)
+Le projet repose sur une architecture Client-Serveur (REST) séparant clairement le Backend du Frontend pour plus de performance et de scalabilité.
 
-Assurez-vous d'être dans le dossier `backend/` et d'avoir activé votre environnement virtuel.
+### Frontend (Client)
 
-#### Installation des dépendances
+L'interface utilisateur est construite avec l'écosystème React moderne.
+
+- React.js (v18) : Bibliothèque pour construire une interface interactive basée sur des composants réutilisables.
+- Vite : Outil de build nouvelle génération. Il remplace Webpack pour offrir un démarrage instantané du serveur de développement et une compilation ultra-rapide.
+- React Router Dom : Gère la navigation "Single Page Application" (SPA) sans rechargement de page.
+- Axios : Client HTTP pour communiquer avec l'API REST du backend.
+- Lucide React : Librairie d'icônes vectorielles légères et modernes.
+- CSS Custom Properties : Design system maison basé sur des variables CSS natives pour une charte graphique cohérente (Thème Mauve/Anthracite).
+
+### Backend (Serveur)
+
+Le serveur assure la persistance des données et la logique métier via une API robuste.
+
+- Django 5 (Python) : Framework web de haut niveau, sécurisé et rapide.
+- Django REST Framework (DRF) : Surcouche puissante pour transformer les modèles Django en API RESTful (JSON) standardisée.
+- ReportLab : Librairie Python utilisée pour générer dynamiquement les bulletins de paie au format PDF.
+- SQLite : Base de données relationnelle légère (facilement migrable vers PostgreSQL).
+
+---
+
+## Fonctionnalités Principales
+
+### 1. Gestion des Collaborateurs (CRUD)
+
+- Annuaire Intelligent : Tableau de bord avec recherche instantanée et filtres dynamiques (Département, Statut).
+- Fiche Employé 360° : Centralisation des infos personnelles, contractuelles, historique de carrière et documents.
+- Édition & Archivage : Formulaires structurés avec validation des données.
+
+### 2. Organigramme Dynamique
+
+- Visualisation graphique des liens hiérarchiques.
+- Navigation interactive Manager / Subordonnés.
+
+### 3. Module Paie Simplifiée
+
+- Calculatrice Live : Simulation du passage Brut → Net en temps réel avec calcul des charges et heures supplémentaires.
+- Génération PDF : Création automatique et téléchargement de bulletins de paie propres et standardisés.
+- Historique : Suivi des bulletins générés par mois.
+
+---
+
+## Guide d'Installation
+
+### Pré-requis
+
+- Python 3.10+
+- Node.js 16+
+
+### 1. Installation du Backend (API)
 
 ```bash
-pip install django djangorestframework drf-spectacular faker
-```
+cd backend
 
-#### Préparation de la base de données
+# Création de l'environnement virtuel
+python -m venv venv
 
-```bash
-python manage.py makemigrations
+# Activation (Windows)
+venv\Scripts\activate
+# Activation (Mac/Linux)
+# source venv/bin/activate
+
+# Installation des dépendances
+pip install django djangorestframework django-cors-headers reportlab
+
+# Migration de la base de données
 python manage.py migrate
-```
 
-#### Initialisation des données (CSV + Faker)
-
-```bash
-python manage.py setup_dev_data
-```
-
-#### Lancement du serveur
-
-```bash
+# Lancement du serveur
 python manage.py runserver
 ```
 
+L'API sera accessible sur :  
+http://127.0.0.1:8000/api/hr/
+
 ---
 
-### 2. Frontend (Vite)
-
-Placez-vous dans le dossier `frontend/`.
-
-#### Installation
+### 2. Installation du Frontend (Interface)
 
 ```bash
+cd frontend
+
+# Installation des paquets Node
 npm install
-```
 
-#### Lancement
-
-```bash
+# Lancement en mode développement (via Vite)
 npm run dev
 ```
 
----
-
-## API REST & Documentation
-
-Le backend expose une API REST développée avec Django REST Framework.  
-L'architecture s'appuie sur des sérialiseurs imbriqués, permettant de récupérer des entités complexes (comme un employé avec ses contrats et son historique) en une seule requête JSON standardisée.
-
-L’API est documentée automatiquement à l’aide de Swagger (via `drf-spectacular`), offrant une vue claire des routes disponibles, des schémas de données et un outil de test interactif.
+L'application sera accessible sur :  
+http://localhost:5173 (ou port indiqué par Vite).
 
 ---
 
-## Documentation et Schémas
+## Documentation API
 
-| Service        | URL            | Description                                          |
-|----------------|----------------|------------------------------------------------------|
-| Swagger UI     | /api/docs/     | Interface interactive pour tester les endpoints      |
-| OpenAPI Schema | /api/schema/   | Spécification brute au format YAML / JSON            |
-| Admin Django   | /admin/        | Interface d'administration et de gestion des données |
+Le backend expose une API REST documentée nativement.
 
----
+### Ressources
 
-## Endpoints Principaux
+#### Employés
 
-**Base :** `/api/hr/`
+- `GET /api/hr/employees/`  
+  Liste complète (avec filtres)
 
-| Ressource     | Endpoint           | Informations retournées                          |
-|---------------|--------------------|--------------------------------------------------|
-| Employés      | /employees/        | Profils complets, contrats, affectations et paie |
-| Départements  | /departments/      | Liste des pôles et descriptions associées        |
-| Métiers       | /job-roles/        | Référentiel des postes et grilles salariales     |
-| Contrats      | /contracts/        | Détails contractuels et volumes horaires         |
-| Paie          | /payrolls/         | Historique des salaires, bonus et déductions     |
-| Absences      | /leave-requests/   | Suivi des demandes de congés et statuts          |
-| Recrutement   | /job-offers/       | Gestion des offres et des candidatures           |
+- `POST /api/hr/employees/`  
+  Création d'un collaborateur
 
----
+- `PUT /api/hr/employees/{id}/`  
+  Mise à jour d'un profil
 
-## Structure de la Base de Données
+#### Paie
 
-L'application repose sur plusieurs modèles interconnectés pour une analyse granulaire :
+- `POST /api/hr/payslips/`  
+  Simuler et enregistrer un bulletin
 
-- **Employee** : Profil de base (Nom, Prénom, Âge, Genre, Attrition)
-- **JobAssignment** : Poste actuel, département, salaire et ancienneté
-- **Contract** : Historique des contrats (CDI, CDD, Internship)
-- **Surveys & Reviews** : Données de satisfaction et évaluations de performance
+- `GET /api/hr/payslips/{id}/pdf/`  
+  Télécharger le PDF généré
 
 ---
 
-## Administration
+Explorer l'API :  
+Rendez-vous sur http://127.0.0.1:8000/api/hr/ pour utiliser l'interface de test (Browsable API).
 
-Pour accéder à l'administration, vous devez créer un compte :
+Admin Panel :  
+http://127.0.0.1:8000/admin/  
+(Login: admin / Password: admin - à créer via `createsuperuser`).
 
-```bash
-python manage.py createsuperuser
-```
+---
+
+## Auteurs
+
+Projet développé par FORMOSO Adrien et COCO Emma
