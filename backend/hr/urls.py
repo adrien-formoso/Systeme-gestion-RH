@@ -1,5 +1,10 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
+
 from .views import (
     EmployeeViewSet, DepartmentViewSet, JobRoleViewSet,
     ContractViewSet, JobAssignmentViewSet, JobHistoryViewSet,
@@ -7,13 +12,14 @@ from .views import (
     LeaveRequestViewSet, JobOfferViewSet, JobApplicationViewSet,
     PayrollViewSet, TrainingViewSet, EmployeeTrainingViewSet,
     EmployeeDocumentViewSet, ExitEventViewSet, AuditLogViewSet,
-    generate_pdf
+    generate_pdf, RegisterView, OrgChartViewSet
 )
 
 router = DefaultRouter()
 
 # --- Core HR ---
-router.register("employees", EmployeeViewSet)
+# Basename obligatoire car get_queryset est personnalisé
+router.register("employees", EmployeeViewSet, basename="employee")
 router.register("departments", DepartmentViewSet)
 router.register("job-roles", JobRoleViewSet)
 router.register("contracts", ContractViewSet)
@@ -33,7 +39,8 @@ router.register("job-offers", JobOfferViewSet)
 router.register("job-applications", JobApplicationViewSet)
 
 # --- Paie & Formation ---
-router.register("payrolls", PayrollViewSet)
+# Basename obligatoire ici aussi
+router.register("payrolls", PayrollViewSet, basename="payroll")
 router.register("trainings", TrainingViewSet)
 router.register("employee-trainings", EmployeeTrainingViewSet)
 
@@ -41,11 +48,14 @@ router.register("employee-trainings", EmployeeTrainingViewSet)
 router.register("employee-documents", EmployeeDocumentViewSet)
 router.register("audit-logs", AuditLogViewSet)
 
+# --- Organigramme Sécurisé ---
+router.register("org-chart-data", OrgChartViewSet, basename="org-chart-data")
+
 # --- URL PATTERNS ---
 urlpatterns = [
-    # 1. Les routes automatiques de l'API (ex: /employees/, /payrolls/)
     path('', include(router.urls)),
-
-    # 2. La route SPÉCIFIQUE pour le PDF (ex: /payrolls/1/pdf/)
-    path('payrolls/<int:payslip_id>/pdf/', generate_pdf, name='payslip-pdf'),
+    path('auth/register/', RegisterView.as_view(), name='auth_register'),
+    path('auth/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('payrolls/<int:payslip_id>/pdf/', generate_pdf, name='payroll_pdf'),
 ]

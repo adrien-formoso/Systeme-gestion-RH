@@ -3,6 +3,11 @@ from django.contrib.auth.models import User
 
 # --- ENUMS (Choices) ---
 
+class Role(models.TextChoices):
+    HR_ADMIN = 'HR_ADMIN', 'RH / Admin'
+    MANAGER = 'MANAGER', 'Manager'
+    EMPLOYEE = 'EMPLOYEE', 'Employé'
+
 class ContractType(models.TextChoices):
     CDI = 'CDI', 'CDI'
     CDD = 'CDD', 'CDD'
@@ -39,24 +44,22 @@ class EmployeeStatus(models.TextChoices):
 class Department(models.Model):
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(null=True, blank=True)
-
-    def __str__(self):
-        return self.name
+    def __str__(self): return self.name
 
 class JobRole(models.Model):
     name = models.CharField(max_length=100)
     level = models.IntegerField(default=1)
     salary_min = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     salary_max = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-
-    def __str__(self):
-        return f"{self.name} (Lvl {self.level})"
+    def __str__(self): return f"{self.name} (Lvl {self.level})"
 
 class Employee(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, related_name="employee_profile")
     employee_number = models.IntegerField(unique=True)
     firstname = models.CharField(max_length=100)
     lastname = models.CharField(max_length=100)
+    role = models.CharField(max_length=20, choices=Role.choices, default=Role.EMPLOYEE)
+    manager = models.ForeignKey("self", on_delete=models.SET_NULL, null=True, blank=True, related_name="subordinates")
     gender = models.CharField(max_length=10)
     birth_date = models.DateField(null=True, blank=True)
     nationality = models.CharField(max_length=100, null=True, blank=True)
@@ -70,11 +73,10 @@ class Employee(models.Model):
     salary_brut = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     leave_balance = models.IntegerField(default=25)
     status = models.CharField(max_length=20, choices=EmployeeStatus.choices, default=EmployeeStatus.ACTIVE)
-    manager = models.ForeignKey("self", on_delete=models.SET_NULL, null=True, blank=True, related_name="subordinates")
     internal_note = models.TextField(blank=True, null=True, help_text="Note confidentielle RH")
 
     def __str__(self):
-        return f"{self.firstname} {self.lastname} ({self.employee_number})"
+        return f"{self.firstname} {self.lastname} ({self.role})"
 
 class Contract(models.Model):
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name="contracts")
@@ -93,8 +95,6 @@ class JobAssignment(models.Model):
     monthly_income = models.DecimalField(max_digits=10, decimal_places=2)
     business_travel = models.CharField(max_length=100, null=True, blank=True)
     overtime = models.BooleanField(default=False)
-
-# --- HISTORY & PERFORMANCE ---
 
 class JobHistory(models.Model):
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name="job_histories")
@@ -119,8 +119,6 @@ class SatisfactionSurvey(models.Model):
     relationship_satisfaction = models.IntegerField()
     work_life_balance = models.IntegerField()
 
-# --- LEAVES & ABSENCES ---
-
 class LeaveRequest(models.Model):
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name="leave_requests")
     leave_type = models.CharField(max_length=20, choices=LeaveType.choices)
@@ -130,8 +128,6 @@ class LeaveRequest(models.Model):
     reason = models.TextField(null=True, blank=True)
     status = models.CharField(max_length=20, choices=LeaveStatus.choices, default=LeaveStatus.PENDING)
     attachment_path = models.CharField(max_length=255, null=True, blank=True)
-
-# --- RECRUITMENT ---
 
 class JobOffer(models.Model):
     title = models.CharField(max_length=200)
@@ -155,8 +151,6 @@ class JobApplication(models.Model):
     status = models.CharField(max_length=20, choices=ApplicationStatus.choices, default=ApplicationStatus.RECEIVED)
     notes_hr = models.TextField(null=True, blank=True)
 
-# --- PAYROLL ---
-
 class Payroll(models.Model):
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name="payrolls")
     month = models.IntegerField()
@@ -166,8 +160,6 @@ class Payroll(models.Model):
     total_deductions = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     net_salary = models.DecimalField(max_digits=10, decimal_places=2)
     generated_date = models.DateField(auto_now_add=True)
-
-# --- TRAINING ---
 
 class Training(models.Model):
     name = models.CharField(max_length=200)
@@ -180,10 +172,8 @@ class Training(models.Model):
 class EmployeeTraining(models.Model):
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
     training = models.ForeignKey(Training, on_delete=models.CASCADE)
-    status = models.CharField(max_length=50) # Ex: Inscribed, Completed, Failed
+    status = models.CharField(max_length=50) 
     registration_date = models.DateField()
-
-# --- DOCUMENTS ---
 
 class EmployeeDocument(models.Model):
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name="documents")
@@ -191,8 +181,6 @@ class EmployeeDocument(models.Model):
     file_path = models.CharField(max_length=255)
     upload_date = models.DateField(auto_now_add=True)
     description = models.TextField(null=True, blank=True)
-
-# --- EXIT & LOGGING ---
 
 class ExitEvent(models.Model):
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name="exit_events")
