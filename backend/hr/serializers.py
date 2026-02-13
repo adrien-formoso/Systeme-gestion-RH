@@ -68,6 +68,10 @@ class EmployeeDocumentSerializer(serializers.ModelSerializer):
 # --- Paie & Formation ---
 
 class PayrollSerializer(serializers.ModelSerializer):
+    # --- CORRECTION ICI : On ajoute les champs noms pour l'affichage Frontend ---
+    employee_lastname = serializers.ReadOnlyField(source='employee.lastname')
+    employee_firstname = serializers.ReadOnlyField(source='employee.firstname')
+
     class Meta:
         model = Payroll
         fields = "__all__"
@@ -113,7 +117,6 @@ class AuditLogSerializer(serializers.ModelSerializer):
 # --- L'Employé (Global) ---
 
 class EmployeeSerializer(serializers.ModelSerializer):
-    # Relations One-to-Many ou Many-to-Many (Lecture seule ici pour éviter la complexité au POST)
     contracts = ContractSerializer(many=True, read_only=True)
     job_assignments = JobAssignmentSerializer(many=True, read_only=True)
     job_histories = JobHistorySerializer(many=True, read_only=True)
@@ -125,7 +128,6 @@ class EmployeeSerializer(serializers.ModelSerializer):
     trainings = EmployeeTrainingSerializer(source='employeetraining_set', many=True, read_only=True)
     exit_events = ExitEventSerializer(many=True, read_only=True)
     
-    # Pour afficher le nom du manager dans la liste
     manager_name = serializers.SerializerMethodField()
 
     class Meta:

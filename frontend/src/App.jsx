@@ -2,10 +2,10 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Sidebar from './components/Sidebar/Sidebar';
 import Dashboard from './pages/Dashboard/Dashboard'; 
 import OrgChart from './pages/OrgChart/OrgChart'; 
-// On utilise les nouveaux noms de fichiers pour la clarté
 import EmployeeList from './pages/Employees/EmployeeList';
 import EmployeeDetail from './pages/Employees/EmployeeDetail';
 import EmployeeForm from './pages/Employees/EmployeeForm';
+import PayrollPage from './pages/Payroll/PayrollPage';
 
 import './App.css';
 
@@ -29,10 +29,12 @@ function App() {
             <Route path="/statistics" element={<Dashboard />} />
             <Route path="/org-chart" element={<OrgChart />} /> 
 
+            {/* MODULE PAIE*/}
+            <Route path="/payroll" element={<PayrollPage />} />
+
             {/* MODULES EN DÉVELOPPEMENT */}
             <Route path="/leaves" element={<div><h1>📅 Congés & Absences</h1><p>Module en cours de développement...</p></div>} />
             <Route path="/recruitment" element={<div><h1>🤝 Recrutement</h1><p>Module en cours de développement...</p></div>} />
-            <Route path="/payroll" element={<div><h1>💰 Paie</h1><p>Module en cours de développement...</p></div>} />
             
           </Routes>
         </main>
