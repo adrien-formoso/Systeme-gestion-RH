@@ -126,10 +126,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # --- REST FRAMEWORK CONFIG ---
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication', # Pour React (Token)
+        'rest_framework.authentication.SessionAuthentication',       # (Pour le navigateur/Admin)
     ),
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated', # <--- ICI : API SÉCURISÉE
+        'rest_framework.permissions.IsAuthenticated',
     ],
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
