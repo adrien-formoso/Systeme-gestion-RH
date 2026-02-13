@@ -3,6 +3,10 @@ from django.http import HttpResponse
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
+from rest_framework import generics
+from rest_framework.permissions import AllowAny
+from django.contrib.auth.models import User
+from .serializers import RegisterSerializer, UserSerializer
 
 from .models import (
     Employee, Department, JobRole,
@@ -184,3 +188,9 @@ def generate_pdf(request, payslip_id):
     p.showPage()
     p.save()
     return response
+
+# Vue d'inscription publique
+class RegisterView(generics.CreateAPIView):
+    queryset = User.objects.all()
+    permission_classes = (AllowAny,)
+    serializer_class = RegisterSerializer

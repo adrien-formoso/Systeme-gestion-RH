@@ -1,5 +1,10 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
+
 from .views import (
     EmployeeViewSet, DepartmentViewSet, JobRoleViewSet,
     ContractViewSet, JobAssignmentViewSet, JobHistoryViewSet,
@@ -7,7 +12,7 @@ from .views import (
     LeaveRequestViewSet, JobOfferViewSet, JobApplicationViewSet,
     PayrollViewSet, TrainingViewSet, EmployeeTrainingViewSet,
     EmployeeDocumentViewSet, ExitEventViewSet, AuditLogViewSet,
-    generate_pdf
+    generate_pdf, RegisterView # <--- Assure-toi que RegisterView est bien dans views.py
 )
 
 router = DefaultRouter()
@@ -43,9 +48,14 @@ router.register("audit-logs", AuditLogViewSet)
 
 # --- URL PATTERNS ---
 urlpatterns = [
-    # 1. Les routes automatiques de l'API (ex: /employees/, /payrolls/)
+    # 1. Routes API CRUD standards
     path('', include(router.urls)),
 
-    # 2. La route SPÉCIFIQUE pour le PDF (ex: /payrolls/1/pdf/)
+    # 2. Authentification (JWT)
+    path('auth/register/', RegisterView.as_view(), name='auth_register'),
+    path('auth/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+
+    # 3. Route PDF Paie
     path('payrolls/<int:payslip_id>/pdf/', generate_pdf, name='payslip-pdf'),
 ]
