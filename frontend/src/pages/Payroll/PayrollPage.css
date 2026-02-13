@@ -1,0 +1,81 @@
+.payroll-layout {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr; /* Gauche un peu plus large */
+  gap: 30px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .payroll-layout { grid-template-columns: 1fr; }
+}
+
+/* --- PANEL GAUCHE (CONFIG) --- */
+.config-panel { padding: 30px; }
+.divider { height: 1px; background: #f1f5f9; margin: 24px 0; }
+
+.big-select {
+  padding: 14px; font-size: 1rem;
+  border: 1px solid var(--color-brand);
+  background-color: #fcfaff;
+}
+
+.input-icon { position: relative; }
+.input-icon input { padding-right: 30px; font-weight: 600; }
+.input-icon .unit {
+  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+  color: var(--color-text-muted); font-weight: bold;
+}
+
+.full-width-btn {
+  width: 100%; margin-top: 24px;
+  justify-content: center; padding: 14px;
+  font-size: 1rem;
+}
+
+/* --- PANEL DROITE (APERÇU STYLE TICKET) --- */
+.preview-panel {
+  padding: 0; overflow: hidden;
+  border: 1px solid var(--color-border);
+  position: sticky; top: 20px;
+}
+
+.preview-header {
+  background: var(--color-primary); /* Anthracite */
+  color: white; padding: 24px; text-align: center;
+}
+.preview-title { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8; margin-bottom: 8px; }
+.preview-amount { font-size: 2.2rem; font-weight: 800; color: #fff; }
+
+.preview-body { padding: 30px; background: #fff; }
+
+.line-item {
+  display: flex; justify-content: space-between;
+  padding: 10px 0; border-bottom: 1px dashed #e2e8f0;
+  font-size: 0.95rem; color: var(--color-text-muted);
+}
+
+.line-item.subtotal {
+  margin-top: 10px; color: var(--color-primary); font-weight: 700;
+  border-bottom: 1px solid var(--color-primary);
+}
+
+.line-item.highlight {
+  margin-top: 10px; padding-top: 15px; border-bottom: none;
+  font-size: 1.1rem; color: var(--color-brand); font-weight: 800;
+}
+
+.negative { color: var(--color-danger); }
+
+.employer-cost-block {
+  margin-top: 30px; padding: 16px;
+  background: #f8fafc; border-radius: 8px;
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 0.9rem; color: var(--color-text-muted);
+}
+.employer-cost-block strong { color: var(--color-primary); font-size: 1rem; }
+
+/* --- TABLE HISTORIQUE --- */
+.period-badge {
+  background: #f1f5f9; padding: 4px 8px; border-radius: 6px;
+  font-family: monospace; font-weight: 600; color: var(--color-primary);
+}

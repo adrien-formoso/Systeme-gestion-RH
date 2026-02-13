@@ -1,3 +1,4 @@
+from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
     EmployeeViewSet, DepartmentViewSet, JobRoleViewSet,
@@ -5,7 +6,8 @@ from .views import (
     PerformanceReviewViewSet, SatisfactionSurveyViewSet,
     LeaveRequestViewSet, JobOfferViewSet, JobApplicationViewSet,
     PayrollViewSet, TrainingViewSet, EmployeeTrainingViewSet,
-    EmployeeDocumentViewSet, ExitEventViewSet, AuditLogViewSet
+    EmployeeDocumentViewSet, ExitEventViewSet, AuditLogViewSet,
+    generate_pdf
 )
 
 router = DefaultRouter()
@@ -39,4 +41,11 @@ router.register("employee-trainings", EmployeeTrainingViewSet)
 router.register("employee-documents", EmployeeDocumentViewSet)
 router.register("audit-logs", AuditLogViewSet)
 
-urlpatterns = router.urls
+# --- URL PATTERNS ---
+urlpatterns = [
+    # 1. Les routes automatiques de l'API (ex: /employees/, /payrolls/)
+    path('', include(router.urls)),
+
+    # 2. La route SPÉCIFIQUE pour le PDF (ex: /payrolls/1/pdf/)
+    path('payrolls/<int:payslip_id>/pdf/', generate_pdf, name='payslip-pdf'),
+]
