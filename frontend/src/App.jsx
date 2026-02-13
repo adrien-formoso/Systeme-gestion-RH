@@ -45,6 +45,9 @@ const AppContent = () => {
           
           {/* --- ROUTES PROTÉGÉES (Nécessitent Connexion) --- */}
           
+          {/* C'est ici qu'on corrige l'erreur : on map /my-info vers la liste (filtrée) */}
+          <Route path="/my-info" element={<PrivateRoute><EmployeeList /></PrivateRoute>} />
+
           <Route path="/employees" element={<PrivateRoute><EmployeeList /></PrivateRoute>} />
           <Route path="/employees/new" element={<PrivateRoute><EmployeeForm /></PrivateRoute>} />
           <Route path="/employees/:id" element={<PrivateRoute><EmployeeDetail /></PrivateRoute>} />
@@ -54,6 +57,7 @@ const AppContent = () => {
           <Route path="/org-chart" element={<PrivateRoute><OrgChart /></PrivateRoute>} /> 
           <Route path="/payroll" element={<PrivateRoute><PayrollPage /></PrivateRoute>} />
 
+          {/* Pages en construction */}
           <Route path="/leaves" element={<PrivateRoute><div><h1>📅 Congés</h1><p>En construction...</p></div></PrivateRoute>} />
           <Route path="/recruitment" element={<PrivateRoute><div><h1>🤝 Recrutement</h1><p>En construction...</p></div></PrivateRoute>} />
         </Routes>

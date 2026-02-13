@@ -12,13 +12,14 @@ from .views import (
     LeaveRequestViewSet, JobOfferViewSet, JobApplicationViewSet,
     PayrollViewSet, TrainingViewSet, EmployeeTrainingViewSet,
     EmployeeDocumentViewSet, ExitEventViewSet, AuditLogViewSet,
-    generate_pdf, RegisterView # <--- Assure-toi que RegisterView est bien dans views.py
+    generate_pdf, RegisterView, OrgChartViewSet
 )
 
 router = DefaultRouter()
 
 # --- Core HR ---
-router.register("employees", EmployeeViewSet)
+# Basename obligatoire car get_queryset est personnalisé
+router.register("employees", EmployeeViewSet, basename="employee")
 router.register("departments", DepartmentViewSet)
 router.register("job-roles", JobRoleViewSet)
 router.register("contracts", ContractViewSet)
@@ -38,7 +39,8 @@ router.register("job-offers", JobOfferViewSet)
 router.register("job-applications", JobApplicationViewSet)
 
 # --- Paie & Formation ---
-router.register("payrolls", PayrollViewSet)
+# Basename obligatoire ici aussi
+router.register("payrolls", PayrollViewSet, basename="payroll")
 router.register("trainings", TrainingViewSet)
 router.register("employee-trainings", EmployeeTrainingViewSet)
 
@@ -46,16 +48,14 @@ router.register("employee-trainings", EmployeeTrainingViewSet)
 router.register("employee-documents", EmployeeDocumentViewSet)
 router.register("audit-logs", AuditLogViewSet)
 
+# --- Organigramme Sécurisé ---
+router.register("org-chart-data", OrgChartViewSet, basename="org-chart-data")
+
 # --- URL PATTERNS ---
 urlpatterns = [
-    # 1. Routes API CRUD standards
     path('', include(router.urls)),
-
-    # 2. Authentification (JWT)
     path('auth/register/', RegisterView.as_view(), name='auth_register'),
     path('auth/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-
-    # 3. Route PDF Paie
-    path('payrolls/<int:payslip_id>/pdf/', generate_pdf, name='payslip-pdf'),
+    path('payrolls/<int:payslip_id>/pdf/', generate_pdf, name='payroll_pdf'),
 ]

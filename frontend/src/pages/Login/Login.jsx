@@ -15,33 +15,43 @@ const Login = () => {
     setError('');
 
     try {
-      // 1. On demande le token au backend
-      const res = await axios.post('http://127.0.0.1:8000/api/hr/auth/login/', {
-        username,
-        password
-      });
-
-      // 2. On stocke les tokens dans le navigateur
+      // 1. Authentification
+      const res = await axios.post('http://127.0.0.1:8000/api/hr/auth/login/', { username, password });
+      
       localStorage.setItem('access_token', res.data.access);
       localStorage.setItem('refresh_token', res.data.refresh);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.access}`;
 
-      // 3. Gestion des droits (Simulation pour le menu Sidebar)
-      // Si l'user est "admin", on lui donne les droits Staff pour voir le menu Paie
-      if (username === 'admin') {
-        localStorage.setItem('is_staff', 'true');
-      } else {
-        localStorage.setItem('is_staff', 'false');
+      // 2. Identification du Rôle via l'API Employees
+      // Comme on a modifié le backend, si je suis un simple employé, l'API ne me renvoie que MA ligne.
+      const profileRes = await axios.get('http://127.0.0.1:8000/api/hr/employees/');
+      
+      let role = 'EMPLOYEE'; // Par défaut
+      let isStaff = 'false';
+
+      if (username === 'admin' || profileRes.data.length > 1) {
+         // Si c'est "admin" ou si je vois plusieurs personnes, je suis RH/Admin
+         role = 'HR_ADMIN';
+         isStaff = 'true';
+      } else if (profileRes.data.length === 1) {
+         // Je vois 1 seule personne (moi-même), je prends le rôle écrit dans ma fiche
+         role = profileRes.data[0].role;
       }
 
-      // 4. On configure Axios pour les prochaines requêtes
-      axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.access}`;
-      
-      // 5. On redirige vers le dashboard
-      navigate('/statistics');
+      localStorage.setItem('user_role', role);
+      localStorage.setItem('is_staff', isStaff);
+
+      // 3. Redirection
+      if (role === 'HR_ADMIN') {
+        navigate('/statistics');
+      } else {
+        // L'employé va directement sur la liste (qui ne contient que lui)
+        navigate('/employees');
+      }
       
     } catch (err) {
       console.error(err);
-      setError('Identifiants incorrects ou problème serveur.');
+      setError('Identifiants incorrects.');
     }
   };
 
@@ -52,46 +62,24 @@ const Login = () => {
           <h1>HR Smart System</h1>
           <p>Connectez-vous à votre espace</p>
         </div>
-
         <form onSubmit={handleLogin}>
           <div className="form-group">
-            <label>Nom d'utilisateur</label>
+            <label>Utilisateur</label>
             <div className="input-with-icon">
               <User size={18} />
-              <input 
-                type="text" 
-                value={username} 
-                onChange={(e) => setUsername(e.target.value)} 
-                placeholder="Ex: admin"
-                required
-              />
+              <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} required />
             </div>
           </div>
-
           <div className="form-group">
             <label>Mot de passe</label>
             <div className="input-with-icon">
               <Lock size={18} />
-              <input 
-                type="password" 
-                value={password} 
-                onChange={(e) => setPassword(e.target.value)} 
-                placeholder="••••••••"
-                required
-              />
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
             </div>
           </div>
-
           {error && <div className="error-message">{error}</div>}
-
-          <button type="submit" className="btn-primary full-width">
-            Se connecter <ArrowRight size={18} />
-          </button>
+          <button type="submit" className="btn-primary full-width">Se connecter <ArrowRight size={18} /></button>
         </form>
-        
-        <div className="login-footer">
-            <p>Pas encore de compte ? Contactez votre RH.</p>
-        </div>
       </div>
     </div>
   );

@@ -30,23 +30,30 @@ class EmployeeAdmin(admin.ModelAdmin):
         'employee_number',
         'firstname',
         'lastname',
+        'role',      # Affiche le rôle (RH, Manager, Employé) dans la liste
         'status',
         'email',
-        'hire_date',
-        'salary_brut',
-        'manager'
+        'manager'    # Affiche le manager dans la liste
     )
     list_display_links = ('employee_number', 'firstname', 'lastname')
     search_fields = ('employee_number', 'firstname', 'lastname', 'email')
-    list_filter = ('status', 'gender', 'nationality', 'marital_status')
+    list_filter = ('role', 'status', 'gender', 'nationality')
     date_hierarchy = 'hire_date'
     
     # Intégration des relations directes dans la fiche
     inlines = [JobAssignmentInline, ContractInline, PayrollInline]
     
     fieldsets = (
-        ('Identité', {
-            'fields': ('user', 'employee_number', ('firstname', 'lastname'), 'gender', 'birth_date', 'nationality')
+        ('Identité & Accès', {
+            'fields': (
+                'user',          # Lien vers le compte de connexion
+                'role',          # Droits d'accès (RH, Manager, Employé)
+                'employee_number', 
+                ('firstname', 'lastname'), 
+                'gender', 
+                'birth_date', 
+                'nationality'
+            )
         }),
         ('Coordonnées', {
             'fields': (('email', 'phone'), 'address', 'distance_from_home')
@@ -104,7 +111,7 @@ class JobApplicationAdmin(admin.ModelAdmin):
 @admin.register(AuditLog)
 class AuditLogAdmin(admin.ModelAdmin):
     list_display = ('action_date', 'employee', 'action', 'target_table')
-    readonly_fields = ('action_date',) # On ne modifie pas un log d'audit
+    readonly_fields = ('action_date',) 
     list_filter = ('target_table', 'action')
 
 # --- AUTRES ENREGISTREMENTS ---
@@ -114,6 +121,7 @@ class LeaveRequestAdmin(admin.ModelAdmin):
     list_display = ('employee', 'leave_type', 'start_date', 'end_date', 'status')
     list_filter = ('status', 'leave_type')
 
+# Enregistrements simples
 admin.site.register(Department)
 admin.site.register(JobRole)
 admin.site.register(JobAssignment)
